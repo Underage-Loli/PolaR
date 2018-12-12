@@ -1,0 +1,6 @@
+display { "Hello, World!" "DisplayMe2" }
+display { "\n" }
+display { "Im on a NewLine" }
+*varName = "I am a var"
+display { *varName }
+display { "Im ENDING" }
