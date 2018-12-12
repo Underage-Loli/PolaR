@@ -15,6 +15,14 @@ class varTok:
 		self.n = n
 		self.v = v
 
+class addTok:
+	f = None
+	s = None
+	def __init__(self,f, s):
+		self.f = f
+		self.s = s
+
+
 
 #Function Toks
 class DisplayTok:
@@ -26,7 +34,6 @@ class DisplayTok:
 	def exe(self):
 		for i in range(0, len(self.v)):
 			if self.v[i].v == "\n":
-				print("NEWLINE")
 				print("")
 			else:
 				print(self.v[i].v)
@@ -39,6 +46,7 @@ print(file)
 toks = []
 newToks = []
 vars = []
+defs = []
 
 def lex():
 	#LEX
@@ -46,34 +54,45 @@ def lex():
 	global toks
 	strState = 0
 	varState = 0
+	numState = 0
 
 	line = 1
 	for char in file:
 		#print(char)
-		print(tok)
 		if char == "\n":
 			line += 1
-		if char == "\"" and strState == 0 and varState == 0:
+		if char == "\"" and strState == 0 and varState == 0 and numState == 0:
 			strState = 1
 			tok = ""
 		elif char == "\"" and strState == 1:
 			strState = 0
 			toks.append(Token("string", tok))
 			tok = ""
-		elif char == "*" and varState == 0 and strState == 0:
+		elif char == "*" and varState == 0 and strState == 0 and numState == 0:
 			varState = 1
 			tok = ""
-		elif char == " " and varState == 1 and strState == 0:
+		elif char == " " and varState == 1 and strState == 0 and numState == 0:
 			toks.append(Token("var", tok))
 			varState = 0
 			tok = ""
+		elif char == "$" and numState == 0 and varState == 0 and strState == 0:
+			numState = 1
+			tok = ""
+		elif (char == " " or char == "\n") and numState == 1 and varState == 0 and strState == 0:
+			toks.append(Token("num", int(tok)))
+			numState = 0
+			tok = ""
 		else:
 			tok += char
+			print(tok)
 			if strState == 0 and varState == 0:
 				if tok == " ":
 					tok = ""
 				elif tok == "=":
 					toks.append(Token("op", "="))
+					tok = ""
+				elif tok == "+":
+					toks.append(Token("op", "+"))
 					tok = ""
 				elif tok == "\n":
 					tok = ""
@@ -113,6 +132,30 @@ def readToks():
 					#else:
 					vars.append(varTok(toks[i-2].v, toks[i].v))
 					print("Var Created: ", toks[i-2].v, " : ", toks[i].v)
+				elif toks[i].v == "+":
+					i += 1
+					if toks[i].v == "=":
+						i += 1
+
+						firstVar = 0
+						for j in range(0, len(vars)):
+							if vars[j].n == toks[i-3].v:
+								firstVar = j
+								break
+
+						secondVar = 0
+						for j in range(0, len(vars)):
+							if vars[j].n == toks[i].v:
+								secondVar = j
+								break
+
+
+
+						print(firstVar, secondVar)
+						newToks.append(addTok(vars[firstVar], vars[secondVar]))
+
+
+
 
 
 
