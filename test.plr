@@ -3,4 +3,8 @@ display { *x }
 
 *x += *x
 display { *x }
+
+*x += *x
+display { *x }
+
 display { "-END PRGRM-" }

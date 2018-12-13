@@ -16,11 +16,16 @@ class varTok:
 		self.v = v
 
 class addTok:
+	t = "addTok"
 	f = None
 	s = None
 	def __init__(self,f, s):
 		self.f = f
 		self.s = s
+
+	def exe(self):
+		global vars
+		vars[self.f].v += vars[self.s].v
 
 
 
@@ -71,7 +76,7 @@ def lex():
 		elif char == "*" and varState == 0 and strState == 0 and numState == 0:
 			varState = 1
 			tok = ""
-		elif char == " " and varState == 1 and strState == 0 and numState == 0:
+		elif (char == " " or char == "\n") and varState == 1 and strState == 0 and numState == 0:
 			toks.append(Token("var", tok))
 			varState = 0
 			tok = ""
@@ -152,7 +157,7 @@ def readToks():
 
 
 						print(firstVar, secondVar)
-						newToks.append(addTok(vars[firstVar], vars[secondVar]))
+						newToks.append(addTok(firstVar, secondVar))
 
 
 
@@ -183,11 +188,12 @@ def readToks():
 					newToks.append(DisplayTok(tempArr))
 		i += 1
 					#TESTING#
-#	##############################################
-#	for i in range(0, len(newToks)):
-#		print( newToks[i].t )
-#	print("")
-#	###############################################
+	##############################################
+	print("NEW TOKS")
+	for i in range(0, len(newToks)):
+		print( newToks[i].t )
+	print("-=-=-=-=-=-=-=-=-=-=-=-")
+	###############################################
 
 def exe():
 	global newToks
