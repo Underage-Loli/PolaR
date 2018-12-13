@@ -1,10 +1,14 @@
 *x = $10
-display { *x }
+*x = "CHANGED"
 
-*x += *x
-display { *x }
+~newDef
+display { "- START DEF -"}
+	display { "This Is Inside A Def"}
+	display { *x }
+	display { "- END DEF -"}
+End
 
-*x += *x
-display { *x }
 
-display { "-END PRGRM-" }
+@newDef
+
+display { "- END PROGRAM -" }

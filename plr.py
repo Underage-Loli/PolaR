@@ -27,6 +27,29 @@ class addTok:
 		global vars
 		vars[self.f].v += vars[self.s].v
 
+#DEFINITION TOKS
+class defTok:
+	t = "defTok"
+	n = None
+	c = []
+	def __init__(self, n):
+		self.n = n
+
+class callDefTok:
+	t = "callDefTok"
+	n = None
+	def __init__(self, n):
+		self.n = n
+
+	def exe(self):
+		global defs
+		for i in range(0, len(defs)):
+			if defs[i].n == self.n:
+				for j in range(0, len(defs[i].c)):
+					defs[i].c[j].exe()
+
+
+
 
 
 #Function Toks
@@ -60,38 +83,54 @@ def lex():
 	strState = 0
 	varState = 0
 	numState = 0
+	defState = 0
+	callDefState = 0
 
 	line = 1
 	for char in file:
 		#print(char)
 		if char == "\n":
 			line += 1
-		if char == "\"" and strState == 0 and varState == 0 and numState == 0:
+		if char == "\"" and strState == 0 and varState == 0 and defState == 0 and numState == 0:
 			strState = 1
 			tok = ""
 		elif char == "\"" and strState == 1:
 			strState = 0
 			toks.append(Token("string", tok))
 			tok = ""
-		elif char == "*" and varState == 0 and strState == 0 and numState == 0:
+		elif char == "*" and varState == 0 and defState == 0 and strState == 0 and numState == 0:
 			varState = 1
 			tok = ""
-		elif (char == " " or char == "\n") and varState == 1 and strState == 0 and numState == 0:
+		elif (char == " " or char == "\n") and varState == 1 and defState == 0 and strState == 0 and numState == 0:
 			toks.append(Token("var", tok))
 			varState = 0
 			tok = ""
-		elif char == "$" and numState == 0 and varState == 0 and strState == 0:
+		elif char == "$" and numState == 0 and defState == 0 and varState == 0 and strState == 0:
 			numState = 1
 			tok = ""
-		elif (char == " " or char == "\n") and numState == 1 and varState == 0 and strState == 0:
+		elif char == "~" and defState == 0 and numState == 0 and varState == 0 and strState == 0:
+			defState = 1
+			tok = ""
+		elif (char == " " or char == "\n") and defState == 1 and numState == 0 and varState == 0 and strState == 0:
+			toks.append(Token("defStart", tok))
+			defState = 0
+			tok = ""
+		elif (char == " " or char == "\n") and defState == 0 and numState == 1 and varState == 0 and strState == 0:
 			toks.append(Token("num", int(tok)))
 			numState = 0
+			tok = ""
+		elif char == "@" and callDefState == 0 and defState == 0 and numState == 0 and varState == 0 and strState == 0:
+			callDefState = 1
+			tok = ""
+		elif (char == " " or char == "\n") and callDefState == 1 and defState == 0 and numState == 0 and varState == 0 and strState == 0:
+			toks.append(Token("callDef", tok))
+			callDefState = 0
 			tok = ""
 		else:
 			tok += char
 			print(tok)
 			if strState == 0 and varState == 0:
-				if tok == " ":
+				if tok == " " or tok == "\t":
 					tok = ""
 				elif tok == "=":
 					toks.append(Token("op", "="))
@@ -110,6 +149,9 @@ def lex():
 				elif tok == "display":
 					toks.append(Token("func", "display"))
 					tok = ""
+				elif tok == "End" or tok == "end" or tok == "END":
+					toks.append(Token("defEnd", "end"))
+					tok = ""
 
 
 					#TESTING#
@@ -124,6 +166,8 @@ def readToks():
 	global toks
 	global newToks
 	global vars
+	global defs
+	newDefState = 0
 	i = 0
 
 	while i < len(toks):
@@ -135,8 +179,17 @@ def readToks():
 					i += 1
 					#if toks[i].t == "var":
 					#else:
-					vars.append(varTok(toks[i-2].v, toks[i].v))
-					print("Var Created: ", toks[i-2].v, " : ", toks[i].v)
+					varExists = False
+					for j in range(0, len(vars)):
+						if vars[j].n == toks[i-2].v:
+							varNum = j
+							varExists = True
+					if varExists == True:
+						vars[varNum].v = toks[i].v
+						print("Var Changed: ", toks[i-2].v, " : ", toks[i].v)
+					elif varExists == False:
+						vars.append(varTok(toks[i-2].v, toks[i].v))
+						print("Var Created: ", toks[i-2].v, " : ", toks[i].v)
 				elif toks[i].v == "+":
 					i += 1
 					if toks[i].v == "=":
@@ -157,12 +210,10 @@ def readToks():
 
 
 						print(firstVar, secondVar)
-						newToks.append(addTok(firstVar, secondVar))
-
-
-
-
-
+						if newDefState == 0:
+							newToks.append(addTok(firstVar, secondVar))
+						elif newDefState == 1:
+							tempDef.c.append(addTok(firstVar, secondVar))
 
 		elif toks[i].t == "func":
 			if toks[i].v == "display":
@@ -184,11 +235,26 @@ def readToks():
 						else:
 							tempArr.append(toks[j])
 
-				
-					newToks.append(DisplayTok(tempArr))
+					if newDefState == 0:
+						newToks.append(DisplayTok(tempArr))
+					elif newDefState == 1:
+						tempDef.c.append(DisplayTok(tempArr))
+
+		elif toks[i].t == "defStart":
+			tempDef = defTok(toks[i].v)
+			newDefState = 1
+
+		elif toks[i].t == "defEnd":
+			newDefState = 0
+			defs.append(tempDef)
+
+		elif toks[i].t == "callDef":
+			newToks.append(callDefTok(toks[i].v))
+			
 		i += 1
 					#TESTING#
 	##############################################
+	print("-=-=-=-=-=-=-=-=-=-=-=-")
 	print("NEW TOKS")
 	for i in range(0, len(newToks)):
 		print( newToks[i].t )
@@ -199,8 +265,11 @@ def exe():
 	global newToks
 	print("\n\n\n\n\n\n\n\n\n")
 	print(">-<    PolaR    >-<")
+	print("\n")
 	for i in range(0, len(newToks)):
 		newToks[i].exe()
+	print("\n")
+	print(">-<    PolaR    >-<")
 
 def run():
 	lex()
