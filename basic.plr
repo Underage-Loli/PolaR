@@ -1,0 +1,37 @@
+% BASIC.PLR
+%
+% This file contains simple commands to show what is possible with basic understanding of the language.
+
+% Setting Variables.
+% You can set AND reference variables with: *.
+% The $ is used to reference a number rather than a string, Specifically and INT.
+*x = $10
+
+% DEFENITIONS.
+% Defenitions are set using the ~ key.
+% Defenitions are also required to have an END declared: END, End, end, all work for this purpose.
+% Currently As Of "PolaR:1.0" Defenitions cannot take in specific variables, instead, everything is a global variable.
+% Therefore, NO variable should be declared inside a Defenition.
+~newDef
+	
+	% Defenitions contain Commands that will only be ran when you call the defenition ( SEE BELOW ).
+
+	display { "-- This Is 'newDef' --"}
+	display { *x } 
+	*x += $20
+	display { "CHANGING X"}
+	display { *x }
+	display { " " } % This displays a NEW LINE
+End
+
+% Defenitions WILL NOT run automatically, and instead have to be called using @DEFNAME, as show below.
+@newDef
+
+
+% PolaR also allows you to write commands outside of defenitions, that will be ran as they are found in the code.
+display { "Print Me First," }
+display { "I'm Second, Please."}
+
+
+% Thank you for taking the time to review PolaR :)
+% -- Loli --
